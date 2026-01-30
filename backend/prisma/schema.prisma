@@ -525,6 +525,19 @@ model Pessoa {
 
     metaCicloFisicoFechamentoQReabri MetaCicloFisicoFechamento[] @relation("reabertura")
 
+    DemandaConfigQCriei         DemandaConfig[]        @relation("DemandaConfigCriador")
+    DemandaConfigQAtualizei     DemandaConfig[]        @relation("DemandaConfigAtualizador")
+    DemandaConfigQRemovi        DemandaConfig[]        @relation("DemandaConfigRemovedor")
+    DemandaConfigArquivoQCriei  DemandaConfigArquivo[] @relation("DemandaConfigArquivoCriador")
+    DemandaConfigArquivoQRemovi DemandaConfigArquivo[] @relation("DemandaConfigArquivoRemovedor")
+
+    AreaTematicaQueCriei     AreaTematica[] @relation("Criador")
+    AreaTematicaQueAtualizei AreaTematica[] @relation("Atualizador")
+    AreaTematicaQueRemovi    AreaTematica[] @relation("Removedor")
+    AcaoQueCriei             Acao[]         @relation("Criador")
+    AcaoQueAtualizei         Acao[]         @relation("Atualizador")
+    AcaoQueRemovi            Acao[]         @relation("Removedor")
+
     @@index([email])
     @@map("pessoa")
 }
@@ -1224,6 +1237,7 @@ enum arquivo_preview_tipo {
     conversao_pdf // Para documentos - converte para PDF
     conversao_json // Para JSON, converte para html e depois para PDF
     conversao_csv // Para CSV, converte para html e depois para PDF
+    conversao_txt // Para TXT, converte para html e depois para PDF
 }
 
 model Arquivo {
@@ -1276,6 +1290,7 @@ model Arquivo {
     transferencia_anexos                TransferenciaAnexo[]
     VariavelGlobalCicloDocumento        VariavelGlobalCicloDocumento[]
     AtualizacaoEmLote                   AtualizacaoEmLote[]
+    DemandaConfigArquivos               DemandaConfigArquivo[]                @relation("DemandaConfigArquivos")
 
     @@map("arquivo")
 }
@@ -8194,4 +8209,104 @@ model ProjetoTermoEncerramento {
     @@unique([projeto_id, ultima_versao])
     @@index([projeto_id, removido_em])
     @@map("projeto_termo_encerramento")
+}
+
+model DemandaConfig {
+    id Int @id @default(autoincrement())
+
+    data_inicio_vigencia DateTime  @db.Date
+    data_fim_vigencia    DateTime? @db.Date
+
+    valor_minimo Decimal @db.Decimal(15, 2)
+    valor_maximo Decimal @db.Decimal(15, 2)
+
+    // Configuration flags
+    bloqueio_valor_min Boolean @default(true)
+    bloqueio_valor_max Boolean @default(false)
+    alerta_valor_min   Boolean @default(false)
+    alerta_valor_max   Boolean @default(true)
+
+    observacao String?
+
+    ativo Boolean? // only true or NULL, never false
+
+    // Audit fields
+    criado_por     Int
+    criado_em      DateTime  @default(now()) @db.Timestamptz(6)
+    atualizado_por Int?
+    atualizado_em  DateTime  @default(now()) @db.Timestamptz(6)
+    removido_por   Int?
+    removido_em    DateTime? @db.Timestamptz(6)
+
+    criador     Pessoa  @relation("DemandaConfigCriador", fields: [criado_por], references: [id])
+    atualizador Pessoa? @relation("DemandaConfigAtualizador", fields: [atualizado_por], references: [id])
+    removedor   Pessoa? @relation("DemandaConfigRemovedor", fields: [removido_por], references: [id])
+
+    arquivos DemandaConfigArquivo[]
+
+    @@index([ativo, removido_em])
+    @@map("demanda_config")
+}
+
+model DemandaConfigArquivo {
+    id Int @id @default(autoincrement())
+
+    demanda_config_id Int
+    arquivo_id        Int
+
+    // Audit fields
+    criado_por   Int
+    criado_em    DateTime  @default(now()) @db.Timestamptz(6)
+    removido_por Int?
+    removido_em  DateTime? @db.Timestamptz(6)
+
+    demanda_config DemandaConfig @relation(fields: [demanda_config_id], references: [id])
+    arquivo        Arquivo       @relation("DemandaConfigArquivos", fields: [arquivo_id], references: [id])
+    criador        Pessoa        @relation("DemandaConfigArquivoCriador", fields: [criado_por], references: [id])
+    removedor      Pessoa?       @relation("DemandaConfigArquivoRemovedor", fields: [removido_por], references: [id])
+
+    @@map("demanda_config_arquivo")
+}
+
+model AreaTematica {
+    id    Int     @id @default(autoincrement())
+    nome  String  @db.VarChar(255)
+    ativo Boolean @default(true)
+
+    criado_por     Int
+    criado_em      DateTime  @default(now()) @db.Timestamptz(6)
+    atualizado_por Int?
+    atualizado_em  DateTime  @default(now()) @db.Timestamptz(6)
+    removido_por   Int?
+    removido_em    DateTime? @db.Timestamptz(6)
+
+    criador     Pessoa  @relation("Criador", fields: [criado_por], references: [id])
+    atualizador Pessoa? @relation("Atualizador", fields: [atualizado_por], references: [id])
+    removedor   Pessoa? @relation("Removedor", fields: [removido_por], references: [id])
+
+    acoes Acao[]
+
+    @@map("area_tematica")
+}
+
+model Acao {
+    id               Int     @id @default(autoincrement())
+    area_tematica_id Int
+    nome             String  @db.VarChar(255)
+    ativo            Boolean @default(true)
+
+    criado_por     Int
+    criado_em      DateTime  @default(now()) @db.Timestamptz(6)
+    atualizado_por Int?
+    atualizado_em  DateTime  @default(now()) @db.Timestamptz(6)
+    removido_por   Int?
+    removido_em    DateTime? @db.Timestamptz(6)
+
+    criador     Pessoa  @relation("Criador", fields: [criado_por], references: [id])
+    atualizador Pessoa? @relation("Atualizador", fields: [atualizado_por], references: [id])
+    removedor   Pessoa? @relation("Removedor", fields: [removido_por], references: [id])
+
+    area_tematica AreaTematica @relation(fields: [area_tematica_id], references: [id])
+
+    @@map("acao")
 }

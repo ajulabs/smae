@@ -136,6 +136,9 @@ const ModuloDescricao: Record<string, [string, ModuloSistema | ModuloSistema[] |
     CadastroTransferenciaTipo: ['Tipos de Transferência', 'CasaCivil'],
     SMAE_BETA_FEATURES: ['Beta', ['ProgramaDeMetas']],
 
+    CadastroDemandaConfig: ['Configuração de Demandas', 'CasaCivil'],
+    CadastroAreaTematica: ['Área Temática', 'CasaCivil'],
+
     ModalidadeContratacaoMDO: ['', null],
     TipoAditivoMDO: ['', null],
     CadastroCargo: ['', null],
@@ -199,6 +202,20 @@ const PrivConfig: Record<string, false | [ListaDePrivilegios, string | false][]>
         ['TipoAditivo.inserir', 'Inserir Tipo de Aditivo'],
         ['TipoAditivo.editar', 'Editar Tipo de Aditivo'],
         ['TipoAditivo.remover', 'Remover Tipo de Aditivo'],
+    ],
+
+    CadastroDemandaConfig: [
+        ['CadastroDemandaConfig.inserir', 'Inserir Configuração de Demanda'],
+        ['CadastroDemandaConfig.editar', 'Editar Configuração de Demanda'],
+        ['CadastroDemandaConfig.listar', 'Listar Configurações de Demanda'],
+        ['CadastroDemandaConfig.remover', 'Remover Configuração de Demanda'],
+    ],
+
+    CadastroAreaTematica: [
+        ['CadastroAreaTematica.inserir', 'Inserir Área Temática'],
+        ['CadastroAreaTematica.editar', 'Editar Área Temática'],
+        ['CadastroAreaTematica.listar', 'Listar Áreas Temáticas'],
+        ['CadastroAreaTematica.remover', 'Remover Área Temática'],
     ],
 
     AssuntoVariavel: [
@@ -1211,6 +1228,11 @@ const PerfilAcessoConfig: PerfilConfigArray = [
             'TransfereGov.listar',
             'TransfereGov.sincronizar',
             'CadastroTransferencia.dashboard',
+
+            'CadastroDemandaConfig.editar',
+            'CadastroDemandaConfig.inserir',
+            'CadastroDemandaConfig.remover',
+            'CadastroDemandaConfig.listar',
         ],
     },
     {
