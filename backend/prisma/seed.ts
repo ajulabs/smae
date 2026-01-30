@@ -914,6 +914,7 @@ const PerfilAcessoConfig: PerfilConfigArray = [
             'SMAE.superadmin',
             ...todosPrivilegios.filter((e) => /^(PDM|SMAE|PS|MDO)\./.test(e) === false),
             'SMAE.AtualizacaoEmLote', // tmp
+            'SMAE.espectador_de_painel_externo', // acesso a painéis externos para admin geral
         ],
     },
     {
@@ -1366,6 +1367,7 @@ async function main() {
 
             await criar_emaildb_config();
             await criar_texto_config();
+            await criar_smae_config_padrao();
             await atualizar_modulos_e_privilegios();
             await atualizar_perfil_acesso();
 
@@ -1578,6 +1580,19 @@ async function criar_texto_config() {
         create: {
             bemvindo_email: 'Ao acessar o SMAE, Você está ciente e autoriza...',
             tos: '...O acesso ao SMAE indica ciência e concordância com os termos acima',
+        },
+    });
+}
+
+async function criar_smae_config_padrao() {
+    // WIKI_PREFIX é usado para gerar links de ajuda/documentação
+    // Valor padrão aponta para busca do Google, mas pode ser alterado para uma wiki interna
+    await prisma.smaeConfig.upsert({
+        where: { key: 'WIKI_PREFIX' },
+        update: {},
+        create: {
+            key: 'WIKI_PREFIX',
+            value: 'https://www.google.com/search?q=',
         },
     });
 }
