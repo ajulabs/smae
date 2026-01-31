@@ -40,6 +40,11 @@ trap "rm -f $LOCK_FILE" EXIT
 echo "[$(date)] Pulling latest changes..." >> "$LOG_FILE"
 git pull origin master >> "$LOG_FILE" 2>&1
 
+if [ ! -f "$PROJECT_DIR/.env" ]; then
+  echo "[$(date)] ❌ ERROR: .env file not found, skipping deployment" >> "$LOG_FILE"
+  exit 1
+fi
+
 echo "[$(date)] Starting deployment..." >> "$LOG_FILE"
 
 if bash "$PROJECT_DIR/scripts/deploy.sh" >> "$LOG_FILE" 2>&1; then

@@ -17,20 +17,22 @@ Acesse [o README do frontend](frontend/README.md) para instruções de desenvolv
 
 Para deploy em produção no Google Cloud Platform:
 
+- **🚀 Início Rápido**: Ver [SIMPLE_DEPLOYMENT.md](SIMPLE_DEPLOYMENT.md) para deployment automático simplificado
 - **Infraestrutura**: Ver [terraform/README.md](terraform/README.md) para criar infraestrutura com Terraform
-- **Auto-Deploy**: Ver [POLLING_DEPLOYMENT.md](POLLING_DEPLOYMENT.md) para deployment automático via git polling
-- **Setup Completo**: Ver [CI_CD_SETUP.md](CI_CD_SETUP.md) para guia passo-a-passo
-- **Arquitetura**: Ver [terraform/ARCHITECTURE.md](terraform/ARCHITECTURE.md) para detalhes da arquitetura com subdomínios
+- **Arquitetura**: Ver [terraform/ARCHITECTURE.md](terraform/ARCHITECTURE.md) para detalhes da arquitetura com subdomínios (sem Nginx!)
 - **Segurança**: Ver [terraform/SECURITY.md](terraform/SECURITY.md) para features de segurança
 
-### Deploy Automático
+### Deploy Automático (Git Polling)
 
 Este projeto usa **polling automático** para deployments:
-- VM verifica GitHub a cada 5 minutos
-- Detecta novos commits automaticamente
-- Faz pull, build e deploy automaticamente
-- Funciona perfeitamente com repositórios forked
-- Sem necessidade de GitHub Actions ou secrets
+- ✅ Funciona com repositórios forked (sem GitHub Actions)
+- ✅ VM verifica GitHub a cada 5 minutos
+- ✅ Detecta novos commits automaticamente
+- ✅ Faz pull, build e deploy automaticamente
+- ✅ .env file gerenciado manualmente na VM
+- ✅ Sem Secret Manager ou GitHub secrets necessários
+
+**Simplesmente faça git push master e aguarde até 20 minutos para deploy automático!**
 
 # Pré-requisitos
 

@@ -24,10 +24,12 @@ echo ""
 
 cd "$PROJECT_DIR"
 
-echo "Step 1: Fetching secrets (using current secrets)..."
-bash scripts/fetch-secrets.sh > .env 2>&1
-chmod 600 .env
-echo "✓ Secrets loaded"
+echo "Step 1: Verifying .env file exists..."
+if [ ! -f .env ]; then
+  echo "❌ Error: .env file not found"
+  exit 1
+fi
+echo "✓ .env file found"
 echo ""
 
 echo "Step 2: Stopping all services..."

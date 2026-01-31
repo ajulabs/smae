@@ -24,10 +24,14 @@ touch "$LOCK_FILE"
 echo "✓ Deployment lock acquired"
 echo ""
 
-echo "Step 1: Fetching secrets from Secret Manager..."
-bash scripts/fetch-secrets.sh > .env 2>&1
+echo "Step 1: Verifying .env file exists..."
+if [ ! -f .env ]; then
+  echo "❌ Error: .env file not found"
+  echo "Please create .env file with production configuration"
+  exit 1
+fi
 chmod 600 .env
-echo "✓ Secrets fetched and .env generated"
+echo "✓ .env file found"
 echo ""
 
 echo "Step 2: Building Docker images locally..."

@@ -33,12 +33,26 @@ else
 fi
 echo ""
 
-echo "Step 3: Testing Secret Manager access..."
-if gcloud secrets versions access latest --secret="smae-postgres-password" --project=stoked-coder-451819-v9 >/dev/null 2>&1; then
-  echo "✓ Can access secrets"
+echo "Step 3: Checking for .env file..."
+if [ -f "$PROJECT_DIR/.env" ]; then
+  echo "✓ .env file exists"
+  chmod 600 "$PROJECT_DIR/.env"
 else
-  echo "❌ Cannot access Secret Manager"
-  echo "Ensure VM service account has secretAccessor role"
+  echo "⚠️  .env file not found"
+  echo ""
+  echo "You need to create .env file manually:"
+  echo "  1. Copy from production example:"
+  echo "     cp .env.production.example .env"
+  echo "  2. Edit with production values:"
+  echo "     nano .env"
+  echo "  3. Update subdomain URLs:"
+  echo "     - API_HOST_NAME=\"api.smae.e-siri.com\""
+  echo "     - VITE_API_URL=\"https://api.smae.e-siri.com\""
+  echo "     - MB_SITE_URL=\"https://metadb.smae.e-siri.com\""
+  echo "  4. Set BIND_INTERFACE=\"\""
+  echo "  5. Generate strong passwords"
+  echo ""
+  echo "After creating .env, run this script again."
   exit 1
 fi
 echo ""
