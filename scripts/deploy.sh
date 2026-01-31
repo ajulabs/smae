@@ -34,64 +34,39 @@ chmod 600 .env
 echo "✓ .env file found"
 echo ""
 
-echo "Step 2: Building Docker images locally..."
-docker compose -f "$COMPOSE_FILE" build --parallel
-echo "✓ Build complete"
+echo "Step 2: Building and deploying services..."
+docker compose -f "$COMPOSE_FILE" --profile fullStack up --build -d
+echo "✓ Services built and started"
 echo ""
 
-echo "Step 3: Rolling restart of services..."
+echo "Step 3: Waiting for services to stabilize..."
+sleep 15
 echo ""
 
-SERVICES=(
-  "smae_orcamento"
-  "smae_geoloc"
-  "smae_sei"
-  "smae_transferegov"
-  "smae_transferegov_transferencias"
-  "email_service"
-  "gotenberg"
-  "smae_api"
-  "web"
-)
-
-for SERVICE in "${SERVICES[@]}"; do
-  echo "  → Restarting $SERVICE..."
-  
-  OLD_CONTAINER=$(docker ps -q -f name="$SERVICE" || echo "")
-  
-  docker compose -f "$COMPOSE_FILE" up -d --no-deps "$SERVICE"
-  
-  echo "    Waiting for health check..."
-  sleep 10
-  
-  NEW_CONTAINER=$(docker ps -q -f name="$SERVICE" || echo "")
-  
-  if [ -n "$NEW_CONTAINER" ]; then
-    HEALTH=$(docker inspect --format='{{.State.Health.Status}}' "$NEW_CONTAINER" 2>/dev/null || echo "unknown")
-    STATUS=$(docker inspect --format='{{.State.Status}}' "$NEW_CONTAINER" 2>/dev/null || echo "unknown")
-    
+echo "Step 4: Verifying services..."
+FAILED=0
+for SERVICE in smae_api web metabase smae_orcamento smae_geoloc smae_sei smae_transferegov smae_transferegov_transferencias email_service gotenberg; do
+  if docker ps | grep -q "$SERVICE"; then
+    STATUS=$(docker inspect --format='{{.State.Status}}' "$SERVICE" 2>/dev/null || echo "unknown")
     if [ "$STATUS" == "running" ]; then
-      echo "    ✓ $SERVICE is running (health: $HEALTH)"
+      echo "  ✓ $SERVICE: running"
     else
-      echo "    ✗ $SERVICE failed to start!"
-      echo "    Rolling back..."
-      
-      if [ -n "$OLD_CONTAINER" ]; then
-        docker start "$OLD_CONTAINER" || true
-      fi
-      
-      echo "Deployment failed at $SERVICE. Please check logs:"
-      docker compose -f "$COMPOSE_FILE" logs --tail=50 "$SERVICE"
-      exit 1
+      echo "  ✗ $SERVICE: $STATUS"
+      FAILED=1
     fi
   else
-    echo "    ⚠  Warning: Could not find container for $SERVICE"
+    echo "  ⚠  $SERVICE: not found"
   fi
-  
-  echo ""
 done
+echo ""
 
-echo "Step 4: Cleaning up old images..."
+if [ $FAILED -eq 1 ]; then
+  echo "⚠️  Some services failed. Check logs:"
+  docker compose -f "$COMPOSE_FILE" logs --tail=50
+  exit 1
+fi
+
+echo "Step 5: Cleaning up old images..."
 docker image prune -f
 echo "✓ Cleanup complete"
 echo ""
