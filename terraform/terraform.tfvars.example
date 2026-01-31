@@ -1,0 +1,51 @@
+# GCP Project Configuration
+project_id = "stoked-coder-451819-v9"
+region     = "southamerica-east1"
+zone       = "southamerica-east1-a"
+
+# Domain Configuration
+domain_name        = "smae.e-siri.com"
+api_subdomain      = "api.smae.e-siri.com"
+metabase_subdomain = "metadb.smae.e-siri.com"
+
+# VM Configuration
+vm_name      = "siris"
+machine_type = "n2-standard-4"
+boot_disk_size_gb = 100
+
+# Network Configuration
+resource_prefix = "siris"
+network_name    = "siris-network"
+subnet_name     = "siris-subnet"
+subnet_cidr     = "10.0.1.0/24"
+
+# Security Configuration
+enable_cloud_armor   = true
+rate_limit_threshold = 100
+
+# Geo-filtering: List of allowed countries (ISO 3166-1 alpha-2)
+# Empty list = allow all countries
+# Example: ["BR", "US", "PT"] to allow only Brazil, USA, and Portugal
+allowed_countries = []
+
+# Monitoring Configuration
+enable_logging     = true
+log_retention_days = 30
+
+# Health Check Configuration
+health_check_path = "/api/ping"
+
+# SSH Access Configuration
+enable_iap = true
+# Additional source IP ranges for SSH (optional, IAP is always included)
+ssh_source_ranges = []
+
+# Artifact Registry Configuration
+artifact_registry_name = "smae"
+
+# GitHub Actions Configuration (UPDATE THIS FOR YOUR FORK!)
+github_repository = "ajulabs/smae"
+github_org        = "ajulabs"
+
+# Secret Manager Configuration
+secret_prefix = "smae"

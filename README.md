@@ -2,6 +2,8 @@
 
 Pasta de origem do repositório do SMAE
 
+## Desenvolvimento Local
+
 Acesse [o README do backend](backend/README.md) para instruções de desenvolvimento do backend!
 
 Senha do usuário padrão:
@@ -10,6 +12,15 @@ Senha do usuário padrão:
     senha: !286!QDM7H
 
 Acesse [o README do frontend](frontend/README.md) para instruções de desenvolvimento do frontend!
+
+## Produção (GCP)
+
+Para deploy em produção no Google Cloud Platform:
+
+- **Infraestrutura**: Ver [terraform/README.md](terraform/README.md) para criar infraestrutura com Terraform
+- **CI/CD**: Ver [CI_CD_SETUP.md](CI_CD_SETUP.md) para configurar pipeline automatizado
+- **Arquitetura**: Ver [terraform/ARCHITECTURE.md](terraform/ARCHITECTURE.md) para detalhes da arquitetura
+- **Segurança**: Ver [terraform/SECURITY.md](terraform/SECURITY.md) para features de segurança
 
 # Pré-requisitos
 

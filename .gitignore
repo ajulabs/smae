@@ -3,8 +3,11 @@
 .env.*
 .~lock*
 !.env.example
+!.env.production.example
+!.env.template
 utils/sync-proxy.sh
 *.env
+!.env.template
 openapitools.json
 .DS_Store
 

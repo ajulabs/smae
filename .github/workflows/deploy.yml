@@ -1,0 +1,140 @@
+name: Build and Deploy to GCP
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: stoked-coder-451819-v9
+  REGION: southamerica-east1
+  REGISTRY: southamerica-east1-docker.pkg.dev
+  REPOSITORY: smae
+  VM_NAME: siris
+  VM_ZONE: southamerica-east1-a
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    strategy:
+      matrix:
+        service:
+          - name: frontend
+            context: .
+            dockerfile: frontend/Dockerfile
+          - name: backend
+            context: backend
+            dockerfile: Dockerfile
+          - name: backend-geoloc
+            context: backend-geoloc
+            dockerfile: Dockerfile
+          - name: backend-orcamento
+            context: backend-orcamento
+            dockerfile: Dockerfile
+          - name: backend-sei
+            context: backend-sei
+            dockerfile: Dockerfile
+          - name: backend-transferegov
+            context: backend-transfere-gov
+            dockerfile: Dockerfile
+          - name: backend-transferegov-transferencias
+            context: backend-transfere-gov-transferencias
+            dockerfile: Dockerfile
+          - name: gotenberg
+            context: gotenberg
+            dockerfile: Dockerfile
+          - name: email-service
+            context: email-service
+            dockerfile: Dockerfile
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: siris-github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build and push ${{ matrix.service.name }}
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.context }}/${{ matrix.service.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ matrix.service.name }}:latest
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ matrix.service.name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to VM
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: siris-github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Copy deployment files to VM
+        run: |
+          gcloud compute scp \
+            scripts/deploy.sh \
+            scripts/fetch-secrets.sh \
+            .env.template \
+            docker-compose.production.yml \
+            ${{ env.VM_NAME }}:~/smae/ \
+            --zone=${{ env.VM_ZONE }} \
+            --tunnel-through-iap \
+            --project=${{ env.PROJECT_ID }}
+      
+      - name: Deploy to VM
+        run: |
+          gcloud compute ssh ${{ env.VM_NAME }} \
+            --zone=${{ env.VM_ZONE }} \
+            --tunnel-through-iap \
+            --project=${{ env.PROJECT_ID }} \
+            --command="cd ~/smae && IMAGE_TAG=${{ github.sha }} bash scripts/deploy.sh"
+      
+      - name: Verify deployment
+        run: |
+          echo "Waiting for services to be healthy..."
+          sleep 30
+          
+          gcloud compute ssh ${{ env.VM_NAME }} \
+            --zone=${{ env.VM_ZONE }} \
+            --tunnel-through-iap \
+            --project=${{ env.PROJECT_ID }} \
+            --command="docker ps --format 'table {{.Names}}\t{{.Status}}'"
