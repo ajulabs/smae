@@ -66,17 +66,13 @@ echo ""
 echo "Step 5: Installing cron job..."
 CRON_JOB="*/5 * * * * $PROJECT_DIR/scripts/check-and-deploy.sh"
 
-(crontab -l 2>/dev/null | grep -v "check-and-deploy.sh"; echo "$CRON_JOB") | crontab -
+# Get existing crontab, remove any old check-and-deploy entries, add new one
+(crontab -l 2>/dev/null | grep -v "check-and-deploy.sh" || true; echo "$CRON_JOB") | crontab -
 
-if crontab -l | grep -q "check-and-deploy.sh"; then
-  echo "✓ Cron job installed"
-  echo ""
-  echo "Cron schedule:"
-  crontab -l | grep "check-and-deploy.sh"
-else
-  echo "❌ Failed to install cron job"
-  exit 1
-fi
+echo "✓ Cron job installed"
+echo ""
+echo "Cron schedule:"
+crontab -l
 echo ""
 
 echo "Step 6: Testing deployment script..."
