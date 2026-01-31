@@ -5,14 +5,24 @@ echo "==========================================="
 echo "SMAE Deployment Script"
 echo "==========================================="
 echo "Timestamp: $(date)"
-echo "Image Tag: ${IMAGE_TAG:-latest}"
 echo ""
 
 PROJECT_DIR="${HOME}/smae"
 COMPOSE_FILE="docker-compose.production.yml"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+LOCK_FILE="/tmp/smae-deploy.lock"
 
 cd "$PROJECT_DIR"
+
+if [ -f "$LOCK_FILE" ]; then
+  echo "⚠️  Deployment already running (lock file exists)"
+  echo "If this is an error, remove: $LOCK_FILE"
+  exit 1
+fi
+
+trap "rm -f $LOCK_FILE" EXIT
+touch "$LOCK_FILE"
+echo "✓ Deployment lock acquired"
+echo ""
 
 echo "Step 1: Fetching secrets from Secret Manager..."
 bash scripts/fetch-secrets.sh > .env 2>&1
@@ -20,18 +30,12 @@ chmod 600 .env
 echo "✓ Secrets fetched and .env generated"
 echo ""
 
-echo "Step 2: Configuring Docker for Artifact Registry..."
-gcloud auth configure-docker southamerica-east1-docker.pkg.dev --quiet
-echo "✓ Docker configured"
+echo "Step 2: Building Docker images locally..."
+docker compose -f "$COMPOSE_FILE" build --parallel
+echo "✓ Build complete"
 echo ""
 
-echo "Step 3: Pulling latest images..."
-export IMAGE_TAG
-docker compose -f "$COMPOSE_FILE" pull
-echo "✓ Images pulled"
-echo ""
-
-echo "Step 4: Rolling restart of services..."
+echo "Step 3: Rolling restart of services..."
 echo ""
 
 SERVICES=(
@@ -83,7 +87,7 @@ for SERVICE in "${SERVICES[@]}"; do
   echo ""
 done
 
-echo "Step 5: Cleaning up old images..."
+echo "Step 4: Cleaning up old images..."
 docker image prune -f
 echo "✓ Cleanup complete"
 echo ""

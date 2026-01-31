@@ -18,9 +18,19 @@ Acesse [o README do frontend](frontend/README.md) para instruções de desenvolv
 Para deploy em produção no Google Cloud Platform:
 
 - **Infraestrutura**: Ver [terraform/README.md](terraform/README.md) para criar infraestrutura com Terraform
-- **CI/CD**: Ver [CI_CD_SETUP.md](CI_CD_SETUP.md) para configurar pipeline automatizado
-- **Arquitetura**: Ver [terraform/ARCHITECTURE.md](terraform/ARCHITECTURE.md) para detalhes da arquitetura
+- **Auto-Deploy**: Ver [POLLING_DEPLOYMENT.md](POLLING_DEPLOYMENT.md) para deployment automático via git polling
+- **Setup Completo**: Ver [CI_CD_SETUP.md](CI_CD_SETUP.md) para guia passo-a-passo
+- **Arquitetura**: Ver [terraform/ARCHITECTURE.md](terraform/ARCHITECTURE.md) para detalhes da arquitetura com subdomínios
 - **Segurança**: Ver [terraform/SECURITY.md](terraform/SECURITY.md) para features de segurança
+
+### Deploy Automático
+
+Este projeto usa **polling automático** para deployments:
+- VM verifica GitHub a cada 5 minutos
+- Detecta novos commits automaticamente
+- Faz pull, build e deploy automaticamente
+- Funciona perfeitamente com repositórios forked
+- Sem necessidade de GitHub Actions ou secrets
 
 # Pré-requisitos
 

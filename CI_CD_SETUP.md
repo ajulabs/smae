@@ -1,14 +1,23 @@
-# CI/CD Setup Guide
+# Auto-Deployment Setup Guide
 
-Complete guide for setting up automated CI/CD pipeline with GCP.
+Complete guide for setting up automated deployments with git polling.
+
+## How It Works
+
+**Polling-based deployment** - No GitHub Actions needed (works with forks!)
+
+```
+Every 5 minutes → Check GitHub for new commits → If found: Pull, Build, Deploy
+```
 
 ## Prerequisites
 
 - [x] Terraform infrastructure deployed
 - [x] DNS configured (3 A records)
 - [x] SSL certificate active
-- [ ] Production environment file ready
-- [ ] GitHub Actions enabled in repository
+- [x] Secrets uploaded to Secret Manager
+- [ ] VM configured with Docker
+- [ ] Auto-deploy cron job enabled
 
 ## Step-by-Step Setup
 
